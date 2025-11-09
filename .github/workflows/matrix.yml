@@ -1,0 +1,41 @@
+name: Matrix Build with Artifacts
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }} / node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [16, 18, 20]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: matrix-3b0d91a
+        run: echo "Running matrix variant: OS=${{ matrix.os }}, NODE=${{ matrix.node }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Generate build artifact
+        shell: bash
+        run: |
+          mkdir -p dist
+          VARIANT="${{ matrix.os }}-node${{ matrix.node }}"
+          echo "Build output for ${VARIANT} at $(date -u +%FT%TZ)" > "dist/output-${VARIANT}.txt"
+          node -v >> "dist/output-${VARIANT}.txt"
+          echo "OK" >> "dist/output-${VARIANT}.txt"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-3b0d91a-${{ matrix.os }}-node${{ matrix.node }}
+          path: dist/
